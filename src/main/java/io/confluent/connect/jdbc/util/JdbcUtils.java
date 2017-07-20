@@ -178,21 +178,26 @@ public class JdbcUtils {
    * Return current time at the database
    * @param conn
    * @param cal
+   * @param currentTimeQuery
    * @return
    */
-  public static Timestamp getCurrentTimeOnDB(Connection conn, Calendar cal) throws SQLException, ConnectException {
+  public static Timestamp getCurrentTimeOnDB(Connection conn, Calendar cal, String currentTimeQuery) throws SQLException, ConnectException {
     String query;
 
     // This is ugly, but to run a function, everyone does 'select function()'
     // except Oracle that does 'select function() from dual'
     // and Derby uses either the dummy table SYSIBM.SYSDUMMY1  or values expression (I chose to use values)
     String dbProduct = conn.getMetaData().getDatabaseProductName();
-    if ("Oracle".equals(dbProduct))
-      query = "select CURRENT_TIMESTAMP from dual";
-    else if ("Apache Derby".equals(dbProduct))
-      query = "values(CURRENT_TIMESTAMP)";
-    else
-      query = "select CURRENT_TIMESTAMP;";
+    if (currentTimeQuery != null && !"".equals(currentTimeQuery)) {
+      query = currentTimeQuery;
+    } else {
+      if ("Oracle".equals(dbProduct))
+        query = "select CURRENT_TIMESTAMP from dual";
+      else if ("Apache Derby".equals(dbProduct))
+        query = "values(CURRENT_TIMESTAMP)";
+      else
+        query = "select CURRENT_TIMESTAMP;";
+    }
 
     try (Statement stmt = conn.createStatement()) {
       log.debug("executing query " + query + " to get current time from database");

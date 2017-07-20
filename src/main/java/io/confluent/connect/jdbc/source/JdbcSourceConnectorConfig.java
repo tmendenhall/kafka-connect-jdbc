@@ -153,6 +153,13 @@ public class JdbcSourceConnectorConfig extends AbstractConfig {
   public static final String QUERY_DEFAULT = "";
   private static final String QUERY_DISPLAY = "Query";
 
+  public static final String CURRENT_TIME_QUERY_CONFIG = "query.time";
+  private static final String CURRENT_TIME_QUERY_DOC = "database specific query for current time for use with Timestamp based Incrementers overrides database type derived values if set";
+  public static final String CURRENT_TIME_QUERY_DEFAULT = "";
+  private static final String CURRENT_TIME_QUERY_DISPLAY = "TIME QUERY";
+
+
+
   public static final String TOPIC_PREFIX_CONFIG = "topic.prefix";
   private static final String TOPIC_PREFIX_DOC =
       "Prefix to prepend to table names to generate the name of the Kafka topic to publish data "
@@ -228,7 +235,8 @@ public class JdbcSourceConnectorConfig extends AbstractConfig {
         .define(BATCH_MAX_ROWS_CONFIG, Type.INT, BATCH_MAX_ROWS_DEFAULT, Importance.LOW, BATCH_MAX_ROWS_DOC, CONNECTOR_GROUP, 2, Width.SHORT, BATCH_MAX_ROWS_DISPLAY)
         .define(TABLE_POLL_INTERVAL_MS_CONFIG, Type.LONG, TABLE_POLL_INTERVAL_MS_DEFAULT, Importance.LOW, TABLE_POLL_INTERVAL_MS_DOC, CONNECTOR_GROUP, 3, Width.SHORT, TABLE_POLL_INTERVAL_MS_DISPLAY)
         .define(TOPIC_PREFIX_CONFIG, Type.STRING, Importance.HIGH, TOPIC_PREFIX_DOC, CONNECTOR_GROUP, 4, Width.MEDIUM, TOPIC_PREFIX_DISPLAY)
-        .define(TIMESTAMP_DELAY_INTERVAL_MS_CONFIG, Type.LONG, TIMESTAMP_DELAY_INTERVAL_MS_DEFAULT, Importance.HIGH, TIMESTAMP_DELAY_INTERVAL_MS_DOC, CONNECTOR_GROUP, 5, Width.MEDIUM, TIMESTAMP_DELAY_INTERVAL_MS_DISPLAY);
+        .define(TIMESTAMP_DELAY_INTERVAL_MS_CONFIG, Type.LONG, TIMESTAMP_DELAY_INTERVAL_MS_DEFAULT, Importance.HIGH, TIMESTAMP_DELAY_INTERVAL_MS_DOC, CONNECTOR_GROUP, 5, Width.MEDIUM, TIMESTAMP_DELAY_INTERVAL_MS_DISPLAY)
+        .define(CURRENT_TIME_QUERY_CONFIG, Type.STRING, CURRENT_TIME_QUERY_DEFAULT, Importance.MEDIUM, CURRENT_TIME_QUERY_DOC, MODE_GROUP, 6, Width.LONG, CURRENT_TIME_QUERY_DISPLAY);
   }
 
   public static final ConfigDef CONFIG_DEF = baseConfigDef();

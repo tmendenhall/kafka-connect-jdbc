@@ -61,16 +61,18 @@ public class TimestampIncrementingTableQuerier extends TableQuerier {
   private String incrementingColumn;
   private long timestampDelay;
   private TimestampIncrementingOffset offset;
+  private String currentTimeQuery;
 
   public TimestampIncrementingTableQuerier(QueryMode mode, String name, String topicPrefix,
                                            String timestampColumn, String incrementingColumn,
                                            Map<String, Object> offsetMap, Long timestampDelay,
-                                           String schemaPattern, boolean mapNumerics) {
+                                           String schemaPattern, boolean mapNumerics, String currentTimeQuery) {
     super(mode, name, topicPrefix, schemaPattern, mapNumerics);
     this.timestampColumn = timestampColumn;
     this.incrementingColumn = incrementingColumn;
     this.timestampDelay = timestampDelay;
     this.offset = TimestampIncrementingOffset.fromMap(offsetMap);
+    this.currentTimeQuery = currentTimeQuery;
   }
 
   @Override
@@ -151,7 +153,7 @@ public class TimestampIncrementingTableQuerier extends TableQuerier {
     if (incrementingColumn != null && timestampColumn != null) {
       Timestamp tsOffset = offset.getTimestampOffset();
       Long incOffset = offset.getIncrementingOffset();
-      Timestamp endTime = new Timestamp(JdbcUtils.getCurrentTimeOnDB(stmt.getConnection(), DateTimeUtils.UTC_CALENDAR.get()).getTime() - timestampDelay);
+      Timestamp endTime = new Timestamp(JdbcUtils.getCurrentTimeOnDB(stmt.getConnection(), DateTimeUtils.UTC_CALENDAR.get(), currentTimeQuery).getTime() - timestampDelay);
       stmt.setTimestamp(1, endTime, DateTimeUtils.UTC_CALENDAR.get());
       stmt.setTimestamp(2, tsOffset, DateTimeUtils.UTC_CALENDAR.get());
       stmt.setLong(3, incOffset);
@@ -166,7 +168,7 @@ public class TimestampIncrementingTableQuerier extends TableQuerier {
       log.debug("Executing prepared statement with incrementing value = {}", incOffset);
     } else if (timestampColumn != null) {
       Timestamp tsOffset = offset.getTimestampOffset();
-      Timestamp endTime = new Timestamp(JdbcUtils.getCurrentTimeOnDB(stmt.getConnection(), DateTimeUtils.UTC_CALENDAR.get()).getTime() - timestampDelay);
+      Timestamp endTime = new Timestamp(JdbcUtils.getCurrentTimeOnDB(stmt.getConnection(), DateTimeUtils.UTC_CALENDAR.get(), currentTimeQuery).getTime() - timestampDelay);
       stmt.setTimestamp(1, tsOffset, DateTimeUtils.UTC_CALENDAR.get());
       stmt.setTimestamp(2, endTime, DateTimeUtils.UTC_CALENDAR.get());
       log.debug("Executing prepared statement with timestamp value = {} end time = {}",

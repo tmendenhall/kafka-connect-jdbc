@@ -21,15 +21,34 @@ import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.SchemaBuilder;
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.errors.ConnectException;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.util.Date;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class TimestampIncrementingTableQuerierTest {
+
+  private EmbeddedDerby db;
+
+  @Before
+  public void setup() {
+    db = new EmbeddedDerby();
+  }
+
+  @After
+  public void cleanup() throws Exception {
+    db.close();
+    db.dropDatabase();
+  }
 
   @Test
   public void extractIntOffset() throws SQLException {
@@ -69,8 +88,28 @@ public class TimestampIncrementingTableQuerierTest {
     newQuerier().extractOffset(schema, record).getIncrementingOffset();
   }
 
+  @Test()
+  public void testSpecifiedQuery() throws SQLException {
+    final Schema timeSchema = org.apache.kafka.connect.data.Timestamp.SCHEMA;
+    final Schema schema = SchemaBuilder.struct().field("time",timeSchema).build();
+    final Timestamp stamp = new Timestamp(new Date().getTime());
+    final Struct record = new Struct(schema).put("time", stamp);
+    TimestampIncrementingTableQuerier querier = newSpecifiedQuerier();
+    assertEquals(stamp,querier.extractOffset(schema,record).getTimestampOffset());
+
+
+    db.createTable("test","time", "TIMESTAMP");
+    querier.createPreparedStatement(db.getConnection());
+    ResultSet set = querier.executeQuery();
+    assertNotNull(set);
+  }
+
   private TimestampIncrementingTableQuerier newQuerier() {
-    return new TimestampIncrementingTableQuerier(TableQuerier.QueryMode.TABLE, null, "", null, "id", Collections.<String, Object>emptyMap(), 0L, null, false);
+    return new TimestampIncrementingTableQuerier(TableQuerier.QueryMode.TABLE, null, "", null, "id", Collections.<String, Object>emptyMap(), 0L, null, false,"");
+  }
+
+  private TimestampIncrementingTableQuerier newSpecifiedQuerier() {
+    return new TimestampIncrementingTableQuerier(TableQuerier.QueryMode.TABLE, "test", "", "time", null, Collections.<String, Object>emptyMap(), 0L, null, false,"values(CURRENT_TIMESTAMP)");
   }
 
 }
